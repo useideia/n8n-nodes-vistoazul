@@ -1,0 +1,53 @@
+{
+  "name": "n8n-nodes-vistoazul",
+  "version": "0.1.0",
+  "description": "n8n community node para a API de WhatsApp da Visto Azul: enviar texto, midia, cobranca PIX, campanhas em massa, contatos, grupos e receber mensagens por webhook.",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "whatsapp",
+    "vistoazul",
+    "whatsapp-api",
+    "pix",
+    "chatbot",
+    "brazil"
+  ],
+  "license": "MIT",
+  "homepage": "https://vistoazul.com.br",
+  "author": {
+    "name": "Visto Azul",
+    "url": "https://vistoazul.com.br"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/useideia/n8n-nodes-vistoazul.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && gulp build:icons",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/VistoAzulApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/VistoAzul/VistoAzul.node.js",
+      "dist/nodes/VistoAzul/VistoAzulTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "gulp": "^5.0.0",
+    "n8n-workflow": "*",
+    "typescript": "^5.5.4"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
