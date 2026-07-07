@@ -66,6 +66,12 @@ export class VistoAzul implements INodeType {
 					{ name: 'Enviar Midia', value: 'sendMedia', action: 'Enviar midia', description: 'Envia imagem, video ou documento' },
 					{ name: 'Enviar PIX', value: 'sendPix', action: 'Enviar cobranca PIX', description: 'Envia uma cobranca PIX na conversa' },
 					{ name: 'Enviar Enquete', value: 'sendPoll', action: 'Enviar enquete', description: 'Envia uma enquete (poll)' },
+					{ name: 'Baixar Midia', value: 'downloadMedia', action: 'Baixar midia recebida', description: 'Baixa a midia (audio/imagem/video/doc) de uma mensagem recebida; transcreve audio' },
+					{ name: 'Marcar Como Lida', value: 'markRead', action: 'Marcar como lida', description: 'Marca uma mensagem como lida (tique azul)' },
+					{ name: 'Presenca (Digitando)', value: 'presence', action: 'Enviar presenca', description: 'Envia digitando/gravando na conversa' },
+					{ name: 'Reagir', value: 'react', action: 'Reagir a mensagem', description: 'Reage a uma mensagem com emoji' },
+					{ name: 'Editar', value: 'editMessage', action: 'Editar mensagem', description: 'Edita uma mensagem enviada' },
+					{ name: 'Apagar', value: 'deleteMessage', action: 'Apagar mensagem', description: 'Apaga uma mensagem para todos' },
 				],
 				default: 'sendText',
 			},
@@ -152,7 +158,55 @@ export class VistoAzul implements INodeType {
 				required: true,
 				placeholder: '5511999999999',
 				description: 'Numero de destino com DDI e DDD, so digitos',
-				displayOptions: { show: { resource: ['message'] } },
+				displayOptions: { show: { resource: ['message'], operation: ['sendText', 'sendMedia', 'sendPix', 'sendPoll', 'presence', 'react'] } },
+			},
+
+			// --- Atendimento (acoes na conversa) ---
+			{
+				displayName: 'ID da Mensagem',
+				name: 'messageId',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'ID da mensagem (vem no webhook quando ela chega)',
+				displayOptions: { show: { resource: ['message'], operation: ['downloadMedia', 'markRead', 'react', 'editMessage', 'deleteMessage'] } },
+			},
+			{
+				displayName: 'Transcrever Audio',
+				name: 'transcribe',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to transcribe audio to text',
+				displayOptions: { show: { resource: ['message'], operation: ['downloadMedia'] } },
+			},
+			{
+				displayName: 'Presenca',
+				name: 'presence',
+				type: 'options',
+				options: [
+					{ name: 'Digitando', value: 'composing' },
+					{ name: 'Gravando Audio', value: 'recording' },
+					{ name: 'Parar', value: 'paused' },
+				],
+				default: 'composing',
+				displayOptions: { show: { resource: ['message'], operation: ['presence'] } },
+			},
+			{
+				displayName: 'Emoji',
+				name: 'emoji',
+				type: 'string',
+				default: '',
+				placeholder: 'thumbs up',
+				description: 'Emoji da reacao (vazio remove a reacao)',
+				displayOptions: { show: { resource: ['message'], operation: ['react'] } },
+			},
+			{
+				displayName: 'Novo Texto',
+				name: 'editText',
+				type: 'string',
+				default: '',
+				required: true,
+				displayOptions: { show: { resource: ['message'], operation: ['editMessage'] } },
 			},
 
 			// sendText
@@ -443,7 +497,7 @@ export class VistoAzul implements INodeType {
 
 				if (resource === 'message') {
 					const instance = this.getNodeParameter('instance', i, '') as string;
-					const number = this.getNodeParameter('number', i) as string;
+					const number = this.getNodeParameter('number', i, '') as string;
 
 					if (operation === 'sendText') {
 						path = '/messages/text';
@@ -475,6 +529,35 @@ export class VistoAzul implements INodeType {
 						body.text = this.getNodeParameter('pollText', i) as string;
 						body.choices = splitLines(this.getNodeParameter('choices', i) as string);
 						body.selectableCount = this.getNodeParameter('selectableCount', i, 1) as number;
+					} else if (operation === 'downloadMedia') {
+						path = '/messages/media';
+						if (instance) body.instance = instance;
+						body.id = this.getNodeParameter('messageId', i) as string;
+						if (this.getNodeParameter('transcribe', i, false) as boolean) body.transcribe = true;
+					} else if (operation === 'markRead') {
+						path = '/messages/read';
+						if (instance) body.instance = instance;
+						body.id = this.getNodeParameter('messageId', i) as string;
+					} else if (operation === 'presence') {
+						path = '/messages/presence';
+						if (instance) body.instance = instance;
+						body.number = number;
+						body.presence = this.getNodeParameter('presence', i) as string;
+					} else if (operation === 'react') {
+						path = '/messages/react';
+						if (instance) body.instance = instance;
+						body.number = number;
+						body.id = this.getNodeParameter('messageId', i) as string;
+						body.emoji = this.getNodeParameter('emoji', i, '') as string;
+					} else if (operation === 'editMessage') {
+						path = '/messages/edit';
+						if (instance) body.instance = instance;
+						body.id = this.getNodeParameter('messageId', i) as string;
+						body.text = this.getNodeParameter('editText', i) as string;
+					} else if (operation === 'deleteMessage') {
+						path = '/messages/delete';
+						if (instance) body.instance = instance;
+						body.id = this.getNodeParameter('messageId', i) as string;
 					}
 				} else if (resource === 'contact') {
 					if (operation === 'upsert') {
