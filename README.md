@@ -65,7 +65,7 @@ Recebe cada mensagem do WhatsApp como um evento no n8n. Ao ativar o workflow, o 
 
 - 🌐 Site: **https://vistoazul.com.br**
 - 📚 Documentação: **https://vistoazul.com.br/docs**
-- 🧩 Skill para Claude / agentes: **https://github.com/useideia/claude-whatsapp-skill**
+- 🧩 Skill para Claude / agentes: **https://github.com/vistoazul/claude-whatsapp-skill**
 
 ## Licença
 
